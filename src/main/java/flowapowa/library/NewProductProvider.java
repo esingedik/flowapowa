@@ -4,7 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class NewProductProvider {
-    Map<String, VendorProduct> products = new HashMap<>();
+    Map<String, VendorProduct> products;
+
+    public NewProductProvider() {
+        products = new HashMap<>();
+    }
 
     public void store(VendorProduct product) {
         products.put(product.name(), product);

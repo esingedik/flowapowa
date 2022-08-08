@@ -1,6 +1,8 @@
 package flowapowa.application;
 
 import flowapowa.forGettingPrices.DeprecatedProvider;
+import flowapowa.library.NewProductProvider;
+import flowapowa.library.VendorProduct;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +20,7 @@ public class Bouquet {
         this.crafting = crafting;
     }
 
+    @Deprecated
     public void add(Recipe.Element element, DeprecatedProvider priceProvider) {
         double price = priceProvider.getPrice(element.element());
 
@@ -26,6 +29,15 @@ public class Bouquet {
         products.add(product);
     }
 
+    public void add(Recipe.Element element, NewProductProvider newProductProvider) {
+        double price = newProductProvider.getProductByName(element.element()).unitPrice();
+
+        Product product = new Product(element.element(), element.quantity(), price);
+
+        products.add(product);
+    }
+
+    @Deprecated
     public void add(String productName, Integer quantity, DeprecatedProvider priceProvider) {
         double price = priceProvider.getPrice(productName);
 
@@ -34,9 +46,16 @@ public class Bouquet {
         products.add(product);
     }
 
+    public void add(String productName, Integer quantity, NewProductProvider newProductProvider) {
+        double price = newProductProvider.getProductByName(productName).unitPrice();
+
+        Product product = new Product(productName, quantity, price);
+
+        products.add(product);
+    }
+
     public String receipt() {
-        for (Product product :
-                products) {
+        for (Product product : products) {
             receipt.add(product);
         }
         receipt.addTotal("Crafting", crafting());

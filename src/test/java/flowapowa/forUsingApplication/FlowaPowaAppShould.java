@@ -5,6 +5,8 @@ import flowapowa.application.BouquetBuilder;
 import flowapowa.application.BuildBouquet;
 import flowapowa.application.ReceiptPrinter;
 import flowapowa.forGettingPrices.DeprecatedProvider;
+import flowapowa.library.NewProductProvider;
+import flowapowa.library.VendorProduct;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -22,9 +24,25 @@ class FlowaPowaAppShould {
     @Mock
     DeprecatedProvider priceProvider;
 
+    NewProductProvider newProductProvider = new NewProductProvider();
+
+    @Deprecated
     @Test
     void MakeASimpleBouquetWitUniqueFlowerNoCraftingCosts() {
         buildBouquet = new BuildBouquet(new BouquetBuilder(priceProvider));
+        FlowaPowaApp.inject(buildBouquet, receiptPrinter);
+
+        assertEquals(0, (Integer) FlowaPowaApp.main(new String[]{"rose:12;", "0"}));
+
+        verify(receiptPrinter, times(1)).print(any(Bouquet.class));
+    }
+
+    @Test
+    void MakeASimpleBouquetWitUniqueFlowerNoCraftingCostsForNewProductProvider() {
+        VendorProduct vendorProduct = new VendorProduct("rose", 1.5);
+        newProductProvider.store(vendorProduct);
+
+        buildBouquet = new BuildBouquet(new BouquetBuilder(newProductProvider));
         FlowaPowaApp.inject(buildBouquet, receiptPrinter);
 
         assertEquals(0, (Integer) FlowaPowaApp.main(new String[]{"rose:12;", "0"}));
