@@ -3,6 +3,8 @@ package flowapowa.forUsingApplication;
 import flowapowa.application.Bouquet;
 import flowapowa.application.BuildBouquet;
 import flowapowa.application.ReceiptPrinter;
+import flowapowa.config.Config;
+import flowapowa.config.ConfigHandler;
 
 public class FlowaPowaApp {
 
@@ -10,8 +12,6 @@ public class FlowaPowaApp {
     private static ReceiptPrinter receiptPrinter;
 
     public static int main(String[] args) {
-        System.setProperty("isNewProviderEnabled","true");
-
         String recipe = args[0];
         Integer crafting = Integer.valueOf(args[1]);
 

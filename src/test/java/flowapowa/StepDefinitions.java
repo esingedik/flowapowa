@@ -3,13 +3,18 @@ package flowapowa;
 import flowapowa.application.BouquetBuilder;
 import flowapowa.application.BuildBouquet;
 import flowapowa.application.ReceiptPrinter;
+import flowapowa.config.Config;
+import flowapowa.config.ConfigHandler;
 import flowapowa.forGettingPrices.DeprecatedProvider;
 import flowapowa.forPrintingReceipts.ConsoleReceiptPrinter;
 import flowapowa.forUsingApplication.FlowaPowaApp;
+import flowapowa.library.NewProductProvider;
+import flowapowa.library.VendorProduct;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
+import java.io.FileNotFoundException;
 import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -17,16 +22,34 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class StepDefinitions {
 
     private final DeprecatedProvider provider;
+    private final NewProductProvider newProductProvider;
+    private final boolean isNewProductProviderEnabled;
     private Integer crafting;
     private String recipe;
 
     public StepDefinitions() {
+        ConfigHandler handler = null;
+        try {
+            handler = ConfigHandler.getInstance();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        Config config = handler.getConfig();
+
+        this.isNewProductProviderEnabled = config.getIsNewProductProviderEnabled();
         this.provider = new DeprecatedProvider();
+        this.newProductProvider = new NewProductProvider();
     }
 
     @Given("{string} costs {double}")
     public void costs(String product, Double unitaryPrice) {
-        provider.add(product, unitaryPrice);
+        if (isNewProductProviderEnabled) {
+            VendorProduct vendorProduct = new VendorProduct(product, unitaryPrice);
+            newProductProvider.store(vendorProduct);
+        } else {
+            provider.add(product, unitaryPrice);
+
+        }
     }
 
     @Given("crafting adds {int}%")
@@ -41,9 +64,19 @@ public class StepDefinitions {
 
     @Then("the receipt looks like")
     public void the_receipt_looks_like(String expectedReceipt) {
-        BuildBouquet buildBouquet = new BuildBouquet(
-                new BouquetBuilder(provider)
-        );
+
+        BuildBouquet buildBouquet;
+        if (isNewProductProviderEnabled) {
+            buildBouquet = new BuildBouquet(
+                    new BouquetBuilder(newProductProvider)
+            );
+        } else {
+            buildBouquet = new BuildBouquet(
+                    new BouquetBuilder(provider)
+            );
+        }
+
+
         ReceiptPrinter receiptPrinter = new ConsoleReceiptPrinter();
 
         FlowaPowaApp.inject(buildBouquet, receiptPrinter);
